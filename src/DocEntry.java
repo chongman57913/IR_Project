@@ -1,6 +1,6 @@
 public class DocEntry{
-	Integer docID;
-	double docWeight;
+	private Integer docID;
+	private double docWeight;
 	
 	public DocEntry(int id, double w){
 		docID = id;
@@ -13,5 +13,13 @@ public class DocEntry{
 	
 	public double GetDocumentWeight(){
 		return docWeight;
+	}
+	
+	public void EditDocumentID(Integer newID){
+		docID = newID;
+	}
+	
+	public void EditDocumentWeight(double newWeight){
+		docWeight = newWeight;
 	}
 }
