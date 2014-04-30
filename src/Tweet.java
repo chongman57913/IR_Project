@@ -5,9 +5,16 @@ public class Tweet{
 	private String user;
 	
 	public Tweet(String t){
+		if(t == null)
+			return;
+		
 		String[] words = t.split(";");
 		if(words.length < 3) //error format
 			return;
+		
+		if(words[0].split(" ").length != 2)
+			return;
+		
 		date = words[0].split(" ")[0].trim();
 		time = words[0].split(" ")[1].trim();
 		user = words[1].trim();
