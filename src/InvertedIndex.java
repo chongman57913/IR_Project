@@ -7,14 +7,17 @@ import java.util.Map.Entry;
  * 
  */
 
+@SuppressWarnings("static-access")
 public class InvertedIndex{
-	private static HashMap<String,Integer> stopwordDict;
+	private static Token token;
 	
 	public static void main(String args[]){
-		GetStopwordDict();
+		token = new Token();
+		
 		CreateInvertedIndex();
 	}
 	
+
 	private static void CreateInvertedIndex(){
 		HashMap<String,ArrayList<DocEntry>> termIndex = new HashMap<String,ArrayList<DocEntry>>(); //store index data
 		
@@ -42,10 +45,10 @@ public class InvertedIndex{
 				String[] tokens = t.GetContent().split(" ");
 				
 				for(int j=0;j<tokens.length;j++){
-					if(!IgnoreWord(tokens[j]) && !IgnoreWord(RemoveSymbol(tokens[j])) && !RemoveSymbol(tokens[j]).equals("")){
+					if(!token.IgnoreWord(tokens[j]) && !token.IgnoreWord(token.RemoveSymbol(tokens[j])) && !token.RemoveSymbol(tokens[j]).equals("")){
 						//token allow to index, calc TF
 						Integer docID = Integer.valueOf(allDoc[i].getName().split(".txt")[0]);
-						tokens[j] = s.stemming(RemoveSymbol(tokens[j])).trim(); //handle token
+						tokens[j] = s.stemming(token.RemoveSymbol(tokens[j])); //handle token
 						
 						HashMap<String,Integer> oldTFList = CollectionTF.get(docID);
 						if(oldTFList == null)
@@ -62,7 +65,7 @@ public class InvertedIndex{
 						//Calc DF
 						int isRepeated = 0;
 						for(int k=0;k<j;k++){ //check if word appeared before
-							String compare = s.stemming(RemoveSymbol(tokens[k])).trim();
+							String compare = s.stemming(token.RemoveSymbol(tokens[k]));
 							if(compare.equals(tokens[j])){
 								isRepeated = 1;
 								break;
@@ -82,7 +85,6 @@ public class InvertedIndex{
 			}
 			
 			//calc tf-idf weight
-			int n = 0;
 			for(int i=1;i<=docCounter;i++){ //calc all document
 				HashMap<String,Integer> docTF = CollectionTF.get(i);
 				
@@ -91,7 +93,7 @@ public class InvertedIndex{
 				
 				//calc TF-IDF
 				double vectorLength = 0;
-				HashMap<String,Double> docWeight = new HashMap<String,Double>();
+				HashMap<String,Double> docWeight = new HashMap<String,Double>(); //store the term weight of document
 				
 				for(Entry<String,Integer> entry : docTF.entrySet()){
 					String term = entry.getKey();
@@ -103,12 +105,11 @@ public class InvertedIndex{
 					double weight = (1 + Math.log10(TF)) * (Math.log10(docCounter / CollectionDF.get(term)));
 					vectorLength += weight * weight;
 					
-					
 					docWeight.put(term, weight);
 				}
 				vectorLength = Math.sqrt(vectorLength);
 				
-				//normalization
+				//normalization, v = v / |v|
 				for(Entry<String,Double> entry : docWeight.entrySet()){
 					String term = entry.getKey();
 					Double weight = entry.getValue() / vectorLength;
@@ -118,10 +119,8 @@ public class InvertedIndex{
 						oldList = new ArrayList<DocEntry>();
 					
 					oldList.add(new DocEntry(i,weight));
-					termIndex.put(term, oldList);
-					
+					termIndex.put(term, oldList);	
 				}
-				
 				//break; //testing
 			}
 			
@@ -137,60 +136,11 @@ public class InvertedIndex{
 				writer.write(CollectionDF.get(term) + "\n");
 				
 				//write doc ID & weight
-				for(int i=0;i<docList.size();i++){ //loop list
+				for(int i=0;i<docList.size();i++) //loop list
 					writer.write(docList.get(i).GetDocumentID() + "," + docList.get(i).GetDocumentWeight() + "\n");
-				}
+				
 				writer.close();
 			}
 		}catch(Exception e){ e.printStackTrace(); }
-		
-	}
-	
-	private static void GetStopwordDict(){
-		//init stop word dictionary
-		stopwordDict = new HashMap<String, Integer>();
-		try{
-			FileInputStream fStream = new FileInputStream("data/stopwords.txt");
-			DataInputStream in = new DataInputStream(fStream);
-			BufferedReader br = new BufferedReader(new InputStreamReader(in));
-			String line = "";
-			
-			while((line = br.readLine()) != null)
-				stopwordDict.put(line,1);
-			
-			br.close();
-		}catch(Exception e){ e.printStackTrace(); }
-	}
-	
-	private static String RemoveSymbol(String s){
-		//remove all special symbol
-		return s.replaceAll("[^\\p{L}\\p{Nd}]", "").toLowerCase();
-		
-	}
-	
-	private static boolean IgnoreWord(String s){
-		//check if the word should be ignore
-		return IsUserNameOrRT(s) || IsLink(s) || IsStopword(s) || s.trim().equals("");
-	}
-	
-	private static boolean IsUserNameOrRT(String s){
-		//String start with '@' & RT
-		//ignore user name & RT
-		return s.startsWith("@") || s.equals("RT");
-	}
-	
-	private static boolean IsLink(String s){
-		//String start with http://
-		//ignore link
-		return s.startsWith("http://") || s.startsWith("https://");
-	}
-	
-	private static boolean IsStopword(String s){
-		//String is a stop word
-		//ignore stop word
-		if(stopwordDict.containsKey(s))
-			return true;
-		
-		return false;
 	}
 }
