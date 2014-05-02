@@ -15,7 +15,7 @@ public class Token{
 	}
 	
 	public static String HandleTerm(String s){
-		return new Stemmer().stemming(RemoveSymbol(s).toLowerCase().trim(););
+		return new Stemmer().stemming(RemoveSymbol(s).toLowerCase().trim());
 	}
 	
 	public boolean IgnoreWord(String s){
