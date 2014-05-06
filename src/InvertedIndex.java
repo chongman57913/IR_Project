@@ -131,7 +131,7 @@ public class InvertedIndex{
 				String term = entry.getKey();
 				ArrayList<DocEntry> docList = entry.getValue();
 				
-				PrintWriter writer = new PrintWriter("index/" + term +  ".txt");
+				PrintWriter writer = new PrintWriter("index/" + term.trim() +  ".txt");
 				//write DF
 				writer.write(CollectionDF.get(term) + "\n");
 				
